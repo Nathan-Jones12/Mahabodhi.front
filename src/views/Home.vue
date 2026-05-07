@@ -45,6 +45,8 @@ const totalPretty = computed(() => {
         <h3>Lifetime meditation</h3>
         <p style="font-size:1.4rem; margin: 0.4rem 0;">{{ totalPretty }}</p>
         <router-link to="/timer">Start a session →</router-link>
+        <br />
+        <router-link to="/sessions">View history →</router-link>
       </div>
       <div class="card">
         <h3>Today's invitation</h3>

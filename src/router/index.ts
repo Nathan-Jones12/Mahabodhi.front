@@ -7,6 +7,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/stages', component: () => import('../views/StageTracker.vue'), meta: { auth: true } },
   { path: '/timer', component: () => import('../views/Timer.vue'), meta: { auth: true } },
   { path: '/timer/:concept', component: () => import('../views/Timer.vue'), meta: { auth: true } },
+  { path: '/sessions', component: () => import('../views/Sessions.vue'), meta: { auth: true } },
   { path: '/concepts', component: () => import('../views/Concepts.vue'), meta: { auth: true } },
   { path: '/journal', component: () => import('../views/Journal.vue'), meta: { auth: true } },
   { path: '/forum', component: () => import('../views/Forum.vue'), meta: { auth: true } },

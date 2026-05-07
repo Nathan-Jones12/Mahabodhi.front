@@ -19,6 +19,7 @@ function logout() {
     <router-link to="/" active-class="active" exact><i class="ti ti-home"></i> Home</router-link>
     <router-link to="/stages" active-class="active"><i class="ti ti-stairs-up"></i> Stages</router-link>
     <router-link to="/timer" active-class="active"><i class="ti ti-clock"></i> Timer</router-link>
+    <router-link to="/sessions" active-class="active"><i class="ti ti-history"></i> Sessions</router-link>
     <router-link to="/concepts" active-class="active"><i class="ti ti-book"></i> Concepts</router-link>
     <router-link to="/journal" active-class="active"><i class="ti ti-notebook"></i> Journal</router-link>
     <router-link to="/forum" active-class="active"><i class="ti ti-messages"></i> Forum</router-link>
