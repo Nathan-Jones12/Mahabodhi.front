@@ -16,6 +16,16 @@ const editing = ref(false);
 const editTitle = ref('');
 const editBody = ref('');
 const editTag = ref('');
+const replyError = ref('');
+const editError = ref('');
+
+function readError(e: any, fallback: string): string {
+  const data = e?.response?.data;
+  if (data?.error === 'content_blocked') {
+    return data.reason || 'Your content was blocked. Please revise and try again.';
+  }
+  return data?.error || fallback;
+}
 
 async function load() {
   const id = route.params.id;
@@ -26,9 +36,14 @@ async function load() {
 
 async function submitReply() {
   if (!replyBody.value.trim() || !post.value) return;
-  await api.post(`/api/forum/posts/${post.value.id}/replies`, { body: replyBody.value });
-  replyBody.value = '';
-  await load();
+  replyError.value = '';
+  try {
+    await api.post(`/api/forum/posts/${post.value.id}/replies`, { body: replyBody.value });
+    replyBody.value = '';
+    await load();
+  } catch (e: any) {
+    replyError.value = readError(e, 'Failed to post reply');
+  }
 }
 
 async function toggleLike() {
@@ -47,13 +62,18 @@ function startEdit() {
 
 async function saveEdit() {
   if (!post.value) return;
-  await api.patch(`/api/forum/posts/${post.value.id}`, {
-    title: editTitle.value,
-    body: editBody.value,
-    concept_tag: editTag.value || null,
-  });
-  editing.value = false;
-  await load();
+  editError.value = '';
+  try {
+    await api.patch(`/api/forum/posts/${post.value.id}`, {
+      title: editTitle.value,
+      body: editBody.value,
+      concept_tag: editTag.value || null,
+    });
+    editing.value = false;
+    await load();
+  } catch (e: any) {
+    editError.value = readError(e, 'Failed to save');
+  }
 }
 
 async function remove() {
@@ -96,6 +116,7 @@ onMounted(load);
       <input v-model="editTitle" />
       <textarea v-model="editBody" rows="8"></textarea>
       <input v-model="editTag" placeholder="concept tag" />
+      <p v-if="editError" class="error">{{ editError }}</p>
       <div class="row">
         <button @click="saveEdit">Save</button>
         <button class="btn-ghost" @click="editing = false">Cancel</button>
@@ -109,6 +130,7 @@ onMounted(load);
     <div class="card stack">
       <label>Add a reply</label>
       <textarea v-model="replyBody" rows="4"></textarea>
+      <p v-if="replyError" class="error">{{ replyError }}</p>
       <button @click="submitReply" :disabled="!replyBody.trim()">Post reply</button>
     </div>
   </div>

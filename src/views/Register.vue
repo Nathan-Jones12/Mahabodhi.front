@@ -20,7 +20,12 @@ async function submit() {
     await auth.register(username.value, email.value, password.value, display_name.value || undefined);
     router.push('/');
   } catch (e: any) {
-    error.value = e?.response?.data?.error || 'Registration failed';
+    const data = e?.response?.data;
+    if (data?.error === 'content_blocked') {
+      error.value = data.reason || 'Username or display name contains disallowed content.';
+    } else {
+      error.value = data?.error || 'Registration failed';
+    }
   } finally {
     loading.value = false;
   }

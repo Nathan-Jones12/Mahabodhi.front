@@ -21,7 +21,12 @@ async function submit() {
     });
     router.push(`/forum/${data.id}`);
   } catch (e: any) {
-    error.value = e?.response?.data?.error || 'Failed to post';
+    const data = e?.response?.data;
+    if (data?.error === 'content_blocked') {
+      error.value = data.reason || 'Your post contains disallowed content. Please revise and try again.';
+    } else {
+      error.value = data?.error || 'Failed to post';
+    }
   } finally {
     loading.value = false;
   }
