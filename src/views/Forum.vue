@@ -1,19 +1,53 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import PostCard from '../components/PostCard.vue';
 import { api, type ForumPostSummary } from '../api';
 
 const posts = ref<ForumPostSummary[]>([]);
 const tag = ref('');
+const POLL_MS = 20_000;
+let pollId: number | null = null;
 
 async function load() {
   const params = tag.value ? { tag: tag.value } : {};
-  const { data } = await api.get('/api/forum/posts', { params });
-  posts.value = data.posts;
+  try {
+    const { data } = await api.get('/api/forum/posts', { params });
+    posts.value = data.posts;
+  } catch {
+    // ignore transient errors so polling continues
+  }
+}
+
+function startPolling() {
+  stopPolling();
+  pollId = window.setInterval(() => {
+    if (document.visibilityState === 'visible') load();
+  }, POLL_MS);
+}
+
+function stopPolling() {
+  if (pollId !== null) {
+    clearInterval(pollId);
+    pollId = null;
+  }
+}
+
+function onVisibilityChange() {
+  if (document.visibilityState === 'visible') load();
 }
 
 watch(tag, load);
-onMounted(load);
+
+onMounted(() => {
+  load();
+  startPolling();
+  document.addEventListener('visibilitychange', onVisibilityChange);
+});
+
+onUnmounted(() => {
+  stopPolling();
+  document.removeEventListener('visibilitychange', onVisibilityChange);
+});
 </script>
 
 <template>

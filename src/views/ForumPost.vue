@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api, type ForumPostSummary, type ForumReply } from '../api';
 import { useAuthStore } from '../store';
@@ -29,9 +29,34 @@ function readError(e: any, fallback: string): string {
 
 async function load() {
   const id = route.params.id;
-  const { data } = await api.get(`/api/forum/posts/${id}`);
-  post.value = data.post;
-  replies.value = data.replies;
+  try {
+    const { data } = await api.get(`/api/forum/posts/${id}`);
+    post.value = data.post;
+    replies.value = data.replies;
+  } catch {
+    // ignore transient errors so polling continues
+  }
+}
+
+const POLL_MS = 15_000;
+let pollId: number | null = null;
+
+function startPolling() {
+  stopPolling();
+  pollId = window.setInterval(() => {
+    if (document.visibilityState === 'visible' && !editing.value) load();
+  }, POLL_MS);
+}
+
+function stopPolling() {
+  if (pollId !== null) {
+    clearInterval(pollId);
+    pollId = null;
+  }
+}
+
+function onVisibilityChange() {
+  if (document.visibilityState === 'visible' && !editing.value) load();
 }
 
 async function submitReply() {
@@ -85,7 +110,16 @@ async function remove() {
 
 function fmt(d: string) { return new Date(d).toLocaleString(); }
 
-onMounted(load);
+onMounted(() => {
+  load();
+  startPolling();
+  document.addEventListener('visibilitychange', onVisibilityChange);
+});
+
+onUnmounted(() => {
+  stopPolling();
+  document.removeEventListener('visibilitychange', onVisibilityChange);
+});
 </script>
 
 <template>
